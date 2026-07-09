@@ -1,0 +1,71 @@
+/**
+ * server.js — Express Application Entry Point
+ * CM3010 Database Coursework — IMDb Explorer
+ * Author: Written personally by Ayaan
+ */
+
+'use strict';
+
+require('dotenv').config();
+const express = require('express');
+const path    = require('path');
+const { testConnection } = require('./db');
+
+// ── Route modules ────────────────────────────────────────────
+const indexRouter     = require('./routes/index');
+const genresRouter    = require('./routes/genres');
+const directorsRouter = require('./routes/directors');
+const trendsRouter    = require('./routes/trends');
+const durationRouter  = require('./routes/duration');
+const versatileRouter = require('./routes/versatile');
+const aboutRouter     = require('./routes/about');
+
+const app  = express();
+const PORT = process.env.PORT || 3000;
+
+// ── View engine ──────────────────────────────────────────────
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+
+// ── Static files (CSS, JS, images) ───────────────────────────
+app.use(express.static(path.join(__dirname, 'public')));
+
+// ── Routes ───────────────────────────────────────────────────
+app.use('/',           indexRouter);
+app.use('/genres',     genresRouter);
+app.use('/directors',  directorsRouter);
+app.use('/trends',     trendsRouter);
+app.use('/duration',   durationRouter);
+app.use('/versatile',  versatileRouter);
+app.use('/about',      aboutRouter);
+
+// ── 404 handler ──────────────────────────────────────────────
+app.use((req, res) => {
+  res.status(404).render('error', {
+    title:   '404 — Page Not Found',
+    message: 'The page you are looking for does not exist.',
+    status:  404,
+  });
+});
+
+// ── Global error handler ─────────────────────────────────────
+// Express 5 passes async errors automatically — no need for try/catch in routes
+app.use((err, req, res, _next) => {
+  console.error('Server error:', err);
+  const status = err.status || 500;
+  res.status(status).render('error', {
+    title:   `${status} — Server Error`,
+    message: process.env.NODE_ENV === 'production'
+               ? 'Something went wrong. Please try again.'
+               : err.message,
+    status,
+  });
+});
+
+// ── Start server after DB connection is verified ─────────────
+(async () => {
+  await testConnection();          // Will exit(1) on failure
+  app.listen(PORT, () => {
+    console.log(`🚀 IMDb Explorer running at http://localhost:${PORT}`);
+  });
+})();

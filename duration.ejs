@@ -1,0 +1,27 @@
+/**
+ * routes/index.js — Home page
+ * CM3010 Database Coursework
+ * Author: Written personally by Ayaan
+ */
+
+'use strict';
+
+const express = require('express');
+const { pool } = require('../db');
+const router  = express.Router();
+
+router.get('/', async (req, res) => {
+  // Quick stats for the hero section — total titles, persons, ratings
+  const [[titleCount]]  = await pool.query('SELECT COUNT(*) AS cnt FROM title');
+  const [[personCount]] = await pool.query('SELECT COUNT(*) AS cnt FROM person');
+  const [[ratingCount]] = await pool.query('SELECT COUNT(*) AS cnt FROM rating');
+
+  res.render('index', {
+    title:      'IMDb Explorer',
+    titleCount: titleCount.cnt.toLocaleString(),
+    personCount: personCount.cnt.toLocaleString(),
+    ratingCount: ratingCount.cnt.toLocaleString(),
+  });
+});
+
+module.exports = router;

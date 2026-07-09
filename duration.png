@@ -1,0 +1,40 @@
+const fs = require('fs');
+const path = require('path');
+const mysql = require('mysql2/promise');
+require('dotenv').config({ path: path.join(__dirname, '../../.env') });
+
+async function run() {
+  console.log('🔄 Creating database schema from schema.sql...');
+
+  // Connect without a specific database first so we can create it
+  const pool = mysql.createPool({
+    host:     process.env.DB_HOST     || 'localhost',
+    port:     parseInt(process.env.DB_PORT, 10) || 3306,
+    user:     process.env.DB_USER     || 'root',
+    password: process.env.DB_PASSWORD || '',
+    multipleStatements: true, // Required to run the entire SQL file at once
+  });
+
+  try {
+    const conn = await pool.getConnection();
+    console.log('✅ Connected to MySQL server.');
+
+    const schemaPath = path.join(__dirname, '../schema.sql');
+    const sql = fs.readFileSync(schemaPath, 'utf8');
+
+    console.log('⏳ Running schema.sql...');
+    await conn.query(sql);
+
+    console.log('🎉 Schema created successfully!');
+    conn.release();
+  } catch (err) {
+    console.error('❌ Failed to create schema:', err);
+    if (err.code === 'ECONNREFUSED') {
+      console.error('\n⚠️ Ensure that your local MySQL server (e.g., XAMPP, WAMP, or MySQL Service) is running!');
+    }
+  } finally {
+    await pool.end();
+  }
+}
+
+run();

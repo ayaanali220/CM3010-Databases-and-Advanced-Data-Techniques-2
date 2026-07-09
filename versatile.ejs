@@ -1,0 +1,112 @@
+<%#
+  duration.ejs — RQ4: Genres by Average Runtime
+  CM3010 Database Coursework
+  Author: Written personally by Ayaan
+%>
+<%- include('partials/header') %>
+
+<section class="page-hero page-hero--gold">
+  <div class="container">
+    <p class="label-caps page-hero__tag">Research Question 4</p>
+    <h1 class="page-hero__title">Runtime by Genre</h1>
+    <p class="page-hero__desc">Which genres produce the longest movies? Runtime distribution across film categories.</p>
+  </div>
+</section>
+
+<section class="content-section">
+  <div class="container">
+
+    <!-- Filter -->
+    <form class="filter-bar" method="GET" action="/duration" aria-label="Filter by minimum movies">
+      <label for="min-movies-dur" class="filter-bar__label">Minimum movies:</label>
+      <input type="number" id="min-movies-dur" name="min_movies"
+             value="<%= minMovies %>" min="1" max="1000"
+             class="filter-bar__input" />
+      <button type="submit" class="btn btn--primary btn--sm" id="btn-filter-duration">Apply</button>
+    </form>
+
+    <% if (rows.length > 0) { %>
+
+    <!-- Chart -->
+    <div class="chart-wrap" aria-label="Bar chart of average runtime by genre">
+      <canvas id="durationChart" role="img" aria-label="Horizontal bar chart showing average runtime in minutes per genre"></canvas>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrap">
+      <table class="data-table" aria-label="Movie genres ranked by average runtime">
+        <caption class="sr-only">Movie genres ranked by average runtime in minutes</caption>
+        <thead>
+          <tr>
+            <th scope="col">#</th>
+            <th scope="col">Genre</th>
+            <th scope="col">Avg Runtime</th>
+            <th scope="col">Longest</th>
+            <th scope="col">Shortest</th>
+            <th scope="col">Total Movies</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% rows.forEach((row, i) => { %>
+          <tr>
+            <td class="rank-cell"><%= i + 1 %></td>
+            <td><strong><%= row.genre %></strong></td>
+            <td><span class="runtime-badge"><%= row.avg_runtime %> min</span></td>
+            <td><%= row.longest %> min</td>
+            <td><%= row.shortest %> min</td>
+            <td><%= Number(row.total_movies).toLocaleString() %></td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+
+    <script>
+      // Chart.js — horizontal bar for runtime
+      // Source: Chart.js library (https://www.chartjs.org/) — not written by Ayaan
+      const labels  = <%- chartLabels %>;
+      const runtime = <%- chartRuntime %>;
+      new Chart(document.getElementById('durationChart'), {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Avg Runtime (min)',
+            data: runtime,
+            backgroundColor: 'rgba(73,219,255,0.5)',
+            borderColor: '#49dbff',
+            borderWidth: 1,
+            borderRadius: 6,
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.x} minutes` } }
+          },
+          scales: {
+            x: {
+              title: { display: true, text: 'Minutes', color: '#d1c5ac' },
+              grid: { color: 'rgba(255,255,255,0.07)' },
+              ticks: { color: '#d1c5ac' }
+            },
+            y: {
+              grid: { color: 'rgba(255,255,255,0.05)' },
+              ticks: { color: '#e3e0f1', font: { size: 13 } }
+            }
+          }
+        }
+      });
+    </script>
+
+    <% } else { %>
+    <div class="empty-state"><p>No results with &ge; <%= minMovies %> movies. Try a lower threshold.</p></div>
+    <% } %>
+
+  </div>
+</section>
+
+<%- include('partials/footer') %>

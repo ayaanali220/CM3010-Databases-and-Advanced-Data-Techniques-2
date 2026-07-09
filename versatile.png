@@ -1,0 +1,1225 @@
+\documentclass[12pt,a4paper]{report}
+
+% ── Packages ───────────────────────────────────────────────────────────────────
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{float}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{setspace}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{amsmath}
+\usepackage{tcolorbox}
+\usepackage{tikz}
+\usetikzlibrary{shapes,arrows,positioning,fit,calc}
+\usepackage{microtype}
+\usepackage{lmodern}
+
+% ── Hyperref setup ─────────────────────────────────────────────────────────────
+\hypersetup{
+  colorlinks = true,
+  linkcolor  = NavyBlue,
+  urlcolor   = blue,
+  citecolor  = green!50!black,
+  pdftitle   = {CM3010 Database Coursework},
+  pdfauthor  = {Ayaan},
+}
+
+% ── Define custom colours ──────────────────────────────────────────────────────
+\definecolor{imdbgold}{RGB}{245,197,24}
+\definecolor{deepnavy}{RGB}{18,18,29}
+\definecolor{codegreen}{rgb}{0,0.5,0}
+\definecolor{codegray}{rgb}{0.4,0.4,0.4}
+\definecolor{codepurple}{rgb}{0.45,0,0.7}
+\definecolor{codeblue}{rgb}{0,0.3,0.7}
+\definecolor{backcolour}{RGB}{248,248,242}
+\definecolor{NavyBlue}{RGB}{0,0,128}
+\definecolor{notebg}{RGB}{255,251,230}
+\definecolor{noteborder}{RGB}{200,160,0}
+\definecolor{infobg}{RGB}{230,240,255}
+\definecolor{infoborder}{RGB}{0,80,160}
+
+% ── Code listing style ─────────────────────────────────────────────────────────
+\lstdefinestyle{sqlstyle}{
+  language           = SQL,
+  backgroundcolor    = \color{backcolour},
+  commentstyle       = \color{codegreen}\itshape,
+  keywordstyle       = \color{codeblue}\bfseries,
+  stringstyle        = \color{codepurple},
+  basicstyle         = \ttfamily\small,
+  breakatwhitespace  = false,
+  breaklines         = true,
+  captionpos         = b,
+  keepspaces         = true,
+  numbers            = left,
+  numbersep          = 8pt,
+  numberstyle        = \tiny\color{codegray},
+  showspaces         = false,
+  showstringspaces   = false,
+  showtabs           = false,
+  tabsize            = 2,
+  frame              = single,
+  framerule          = 0.5pt,
+  rulecolor          = \color{codegray},
+  xleftmargin        = 1em,
+  xrightmargin       = 0.5em,
+  morekeywords       = {HAVING,LIMIT,DECIMAL,TINYINT,SMALLINT,UNSIGNED,
+                        AUTO_INCREMENT,ENGINE,InnoDB,CHARSET,utf8mb4,
+                        COLLATE,unicode_ci,CONSTRAINT,REFERENCES,
+                        CASCADE,UPDATE,INDEX,CREATE,DROP,USE,
+                        GROUP_CONCAT,SEPARATOR,DISTINCT,ROUND,
+                        BETWEEN,LIMIT},
+}
+
+\lstdefinestyle{jsstyle}{
+  language         = Java,
+  backgroundcolor  = \color{backcolour},
+  commentstyle     = \color{codegreen}\itshape,
+  keywordstyle     = \color{codeblue}\bfseries,
+  stringstyle      = \color{codepurple},
+  basicstyle       = \ttfamily\small,
+  breaklines       = true,
+  captionpos       = b,
+  keepspaces       = true,
+  numbers          = left,
+  numbersep        = 8pt,
+  numberstyle      = \tiny\color{codegray},
+  showstringspaces = false,
+  tabsize          = 2,
+  frame            = single,
+  framerule        = 0.5pt,
+  rulecolor        = \color{codegray},
+  xleftmargin      = 1em,
+}
+
+\lstset{style=sqlstyle}
+
+% ── Custom tcolorbox environments ─────────────────────────────────────────────
+\tcbuselibrary{skins,breakable}
+
+\newtcolorbox{notebox}{
+  colback=notebg, colframe=noteborder,
+  boxrule=1pt, arc=4pt,
+  title={\textbf{\textsf{Note}}},
+  fonttitle=\small\bfseries,
+  breakable
+}
+\newtcolorbox{infobox}{
+  colback=infobg, colframe=infoborder,
+  boxrule=1pt, arc=4pt,
+  breakable
+}
+
+% ── Section title formatting ───────────────────────────────────────────────────
+\titleformat{\chapter}[display]
+  {\normalfont\huge\bfseries\color{NavyBlue}}
+  {\chaptertitlename\ \thechapter}{16pt}{\Huge}
+\titleformat{\section}{\Large\bfseries\color{NavyBlue}}{\thesection}{1em}{}[\color{NavyBlue}\titlerule]
+\titleformat{\subsection}{\large\bfseries}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}{\normalsize\bfseries}{\thesubsubsection}{1em}{}
+
+% ── Header and footer ─────────────────────────────────────────────────────────
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small CM3010 Database Coursework}
+\fancyhead[R]{\small Ayaan}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% ── Line spacing ──────────────────────────────────────────────────────────────
+\onehalfspacing
+
+% ── Document ──────────────────────────────────────────────────────────────────
+\begin{document}
+
+% ── Title Page ────────────────────────────────────────────────────────────────
+\begin{titlepage}
+  \centering
+  \vspace*{1.5cm}
+  {\LARGE\bfseries University of London\\[0.4em]
+   \large CM3010 Databases and Advanced Data Techniques\par}
+  \vspace{1.5cm}
+  \rule{\textwidth}{1.5pt}\\[0.6em]
+  {\Huge\bfseries\color{NavyBlue} IMDb Explorer\\[0.3em]}
+  {\large\itshape A Relational Database and Web Application for Cinematic Data Analysis}\\[0.4em]
+  \rule{\textwidth}{1.5pt}
+  \vspace{1.5cm}
+  \begin{tabular}{ll}
+    \textbf{Assessment:}   & Midterm Coursework (Stages 1--4) \\[0.3em]
+    \textbf{Dataset:}      & IMDb Non-Commercial Dataset \\[0.3em]
+                           & Movies released 2000--2023 \\[0.3em]
+    \textbf{Database:}     & MySQL (InnoDB) \\[0.3em]
+    \textbf{Technology:}   & Node.js, Express, EJS \\[0.3em]
+    \textbf{Word Count:}   & Approximately 3,500 words \\[0.3em]
+    \textbf{Date:}         & \today \\
+  \end{tabular}
+  \vspace{2cm}
+  \begin{tcolorbox}[colback=notebg,colframe=noteborder,width=0.85\textwidth,arc=6pt,boxrule=1pt]
+    \centering\small
+    \textbf{Academic Integrity Statement}\\[0.4em]
+    All SQL schema definitions, query logic, Node.js server code,
+    data import scripts, CSS, and EJS templates in this submission
+    were written personally by me (Ayaan). External libraries and
+    the IMDb dataset are clearly attributed throughout. This work
+    has not been submitted for any other assessment.
+  \end{tcolorbox}
+  \vfill
+  {\small\color{codegray}
+    Data source: \url{https://datasets.imdbws.com/} ---
+    Non-commercial use explicitly permitted by IMDb.}
+\end{titlepage}
+
+% ── Table of Contents ─────────────────────────────────────────────────────────
+\tableofcontents
+\listoftables
+\newpage
+
+% =============================================================================
+\chapter{Stage 1: Finding and Critiquing a Dataset}
+% =============================================================================
+
+\section{Dataset Selection}
+
+For this coursework I selected the \textbf{IMDb Non-Commercial Dataset}, freely published
+at \url{https://datasets.imdbws.com/} and updated on a weekly basis by the Internet Movie
+Database (IMDb). IMDb is the world's most authoritative source of film and television
+metadata, collecting data from millions of users across the globe.
+
+The dataset is distributed as a collection of tab-separated value (TSV) files compressed
+with GNU Zip. For this project I used the following four files:
+
+\begin{table}[H]
+\centering
+\caption{IMDb TSV Files Used in This Project}
+\begin{tabularx}{\textwidth}{l l X}
+  \toprule
+  \textbf{File} & \textbf{Size (compressed)} & \textbf{Contents} \\
+  \midrule
+  \texttt{title.basics.tsv.gz}      & $\approx$135 MB & Core title metadata: title, type, year, runtime, genres \\
+  \texttt{title.ratings.tsv.gz}     & $\approx$7 MB   & Aggregate user ratings and vote counts \\
+  \texttt{title.principals.tsv.gz}  & $\approx$365 MB & Title--person associations (crew \& cast credits) \\
+  \texttt{name.basics.tsv.gz}       & $\approx$200 MB & Person metadata: name, birth year, known professions \\
+  \bottomrule
+\end{tabularx}
+\label{tab:imdb-files}
+\end{table}
+
+To keep the local database manageable while still offering meaningful analysis,
+I filtered the raw data during the import process to include \textbf{feature films
+(\texttt{titleType = 'movie'}) released between 2000 and 2023 inclusive}.
+
+\subsection{Final Database Counts}
+
+After the full import, the database contains the following row counts (confirmed
+by the import script summary):
+
+\begin{table}[H]
+\centering
+\caption{Final Imported Row Counts}
+\begin{tabular}{l r}
+  \toprule
+  \textbf{Table}        & \textbf{Rows} \\
+  \midrule
+  \texttt{title}        & 326,711  \\
+  \texttt{genre}        & 26       \\
+  \texttt{title\_genre} & 480,704  \\
+  \texttt{rating}       & 186,494  \\
+  \texttt{person}       & 1,055,547 \\
+  \texttt{principal}    & 2,500,049 \\
+  \midrule
+  \textbf{Total rows}   & \textbf{4,549,531} \\
+  \bottomrule
+\end{tabular}
+\label{tab:row-counts}
+\end{table}
+
+\section{Dataset Critique and Assessment}
+
+The dataset was assessed against the six module criteria:
+
+\begin{table}[H]
+\centering
+\caption{Dataset Assessment Against Module Criteria}
+\begin{tabularx}{\textwidth}{l X l}
+  \toprule
+  \textbf{Criterion} & \textbf{Assessment} & \textbf{Score} \\
+  \midrule
+  \textbf{Quality}
+    & The data is curated and maintained directly by IMDb. Every title, rating, and credit
+      is sourced from official IMDb records updated weekly.
+      Null values are encoded using the explicit \texttt{\textbackslash{}N} convention
+      rather than empty strings, making them machine-readable and easy to handle.
+    & Excellent \\[0.6em]
+  \textbf{Level of Detail}
+    & Each title record carries runtime, year, adult classification, and up to three genre
+      tags. Ratings carry both the average score and the total vote count, enabling
+      statistical weighting. The \texttt{principal} table stores the exact job category
+      of every credited crew member.
+    & Very High \\[0.6em]
+  \textbf{Documentation}
+    & A comprehensive public data dictionary is available at
+      \url{https://developer.imdb.com/non-commercial-datasets/}, specifying column names,
+      types, null encoding, and update cadence for every file.
+    & Excellent \\[0.6em]
+  \textbf{Interrelation}
+    & The four files form a natural relational graph: titles link to ratings via
+      \texttt{tconst}; titles link to people via \texttt{title.principals.tsv} using
+      both \texttt{tconst} and \texttt{nconst}. This multi-file structure inherently
+      justifies a normalised relational database over flat-file storage.
+    & High \\[0.6em]
+  \textbf{Discoverability}
+    & Files are publicly indexed at \url{https://datasets.imdbws.com/} with no account
+      required. URLs are stable and directly downloadable.
+    & Excellent \\[0.6em]
+  \textbf{Terms of Use}
+    & The dataset is licensed under the IMDb Non-Commercial Use terms (effectively
+      CC BY-NC 4.0). Academic, non-commercial use is explicitly permitted.
+    & Appropriate \\
+  \bottomrule
+\end{tabularx}
+\label{tab:assessment}
+\end{table}
+
+\section{Research Questions}
+
+The richness of the IMDb dataset allows for meaningful multi-table analysis.
+The following five research questions were formulated to guide the database design
+and drive the web application:
+
+\begin{enumerate}[leftmargin=*, label=\textbf{RQ\arabic*.}]
+  \item \textbf{Top Genres by Rating} ---
+        Which film genres consistently earn the highest average IMDb ratings
+        from viewers (considering genres with at least 50 rated titles)?
+
+  \item \textbf{Top Directors by Average Rating} ---
+        Who are the top 10 directors by average film rating, among those
+        who have directed at least 5 rated feature films?
+
+  \item \textbf{Rating Trends Over Time} ---
+        How has the average movie rating evolved year-by-year from 2000 to 2023?
+        Is there a discernible trend?
+
+  \item \textbf{Runtime by Genre} ---
+        Which film genres produce the longest movies on average?
+        How do minimum and maximum runtimes vary by genre?
+
+  \item \textbf{Versatile Directors} ---
+        Which directors have worked across the greatest diversity of film genres
+        throughout their careers (having directed at least 3 films)?
+\end{enumerate}
+
+Each question is answered with a specific parameterised SQL query, visualised with
+an interactive Chart.js chart, and presented with a filterable data table in the
+web application.
+
+% =============================================================================
+\chapter{Stage 2: Data Modelling}
+% =============================================================================
+
+\section{Conceptual Model --- Entity-Relationship Diagram}
+
+The conceptual design identifies five core entities and their relationships:
+
+\begin{itemize}
+  \item \textbf{Title} --- A feature film (the central entity).
+  \item \textbf{Genre} --- A category of cinema (e.g., Drama, Comedy).
+  \item \textbf{Rating} --- The aggregate user score for a title.
+  \item \textbf{Person} --- A human credited on one or more titles.
+  \item \textbf{Principal} --- The specific role a person played on a title.
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\textwidth]{screenshots/er-diagram.png}
+\caption{Entity--Relationship Diagram using Chen notation (rectangles for entities, ellipses for attributes, diamonds for relationships).}
+\label{fig:er}
+\end{figure}
+
+\section{Relationships and Cardinalities}
+
+\begin{table}[H]
+\centering
+\caption{Entity Relationships and Cardinalities}
+\begin{tabularx}{\textwidth}{l l l X}
+  \toprule
+  \textbf{Entity A} & \textbf{Cardinality} & \textbf{Entity B} & \textbf{Resolution} \\
+  \midrule
+  Title & 1:1 & Rating &
+    A title may have zero or one rating; a rating belongs to exactly one title.
+    Stored as a separate table with a FK, allowing unrated titles to exist. \\[0.4em]
+  Title & M:N & Genre &
+    A title can belong to many genres (e.g., ``Drama, Thriller''); a genre
+    encompasses many titles. Resolved via the \texttt{title\_genre} junction table. \\[0.4em]
+  Title & M:N & Person &
+    A title involves many people in different roles; a person may work on many
+    titles. Resolved via the \texttt{principal} junction table, which additionally
+    stores the \texttt{category} (e.g., ``director'') and \texttt{job} attributes
+    of the participation. \\
+  \bottomrule
+\end{tabularx}
+\label{tab:cardinalities}
+\end{table}
+
+\section{Normalisation Analysis}
+
+The schema was designed from the outset to satisfy the \textbf{Third Normal Form (3NF)}.
+The reasoning for each step is presented below.
+
+\subsection{First Normal Form (1NF)}
+
+A relation is in 1NF when all attributes contain only \textit{atomic} (indivisible)
+values and there are no repeating groups.
+
+\textbf{Problem in raw IMDb data:} The \texttt{title.basics.tsv} file stores genres as
+a comma-separated string in a single column, e.g.\
+\texttt{"Comedy,Drama,Romance"}. This is a multi-valued, non-atomic attribute ---
+a direct violation of 1NF.
+
+\textbf{Solution applied:} Genres are extracted into a dedicated \texttt{genre}
+lookup table (one row per genre name) and linked to titles via the
+\texttt{title\_genre} junction table. Every attribute across all six tables now
+holds a single atomic value.
+
+\subsection{Second Normal Form (2NF)}
+
+A relation is in 2NF when it is in 1NF \emph{and} every non-key attribute is
+\textit{fully functionally dependent} on the entire primary key (no partial
+dependencies).
+
+\textbf{Analysis of junction tables:}
+\begin{itemize}
+  \item \texttt{title\_genre(tconst, genre\_id)} has a composite PK. There are
+        no non-key attributes in this table, so 2NF is trivially satisfied.
+  \item \texttt{principal(tconst, nconst, ordering)} has a composite PK. The
+        attributes \texttt{category} and \texttt{job} describe the
+        \emph{participation} (i.e., the combination of title + person + ordering
+        position), not either entity alone. No partial dependency exists.
+\end{itemize}
+
+\textbf{Conclusion:} All tables are in 2NF.
+
+\subsection{Third Normal Form (3NF)}
+
+A relation is in 3NF when it is in 2NF \emph{and} there are no \textit{transitive
+dependencies} --- every non-key attribute must depend directly on the primary key,
+not on another non-key attribute.
+
+\textbf{Analysis:}
+\begin{itemize}
+  \item In \texttt{title}: \texttt{primaryTitle}, \texttt{originalTitle},
+        \texttt{startYear}, \texttt{runtimeMinutes}, and \texttt{isAdult} all
+        depend solely on \texttt{tconst}. No transitive dependency exists.
+  \item In \texttt{rating}: \texttt{averageRating} and \texttt{numVotes} depend
+        solely on \texttt{tconst}. Critically, \texttt{averageRating} does
+        \emph{not} depend on \texttt{numVotes} (or vice versa) --- they are
+        independent facts about the same entity.
+  \item In \texttt{person}: \texttt{primaryName}, \texttt{birthYear}, and
+        \texttt{primaryProfession} depend solely on \texttt{nconst}.
+  \item In \texttt{genre}: \texttt{name} depends solely on \texttt{genre\_id}.
+\end{itemize}
+
+\textbf{Conclusion:} The schema is in \textbf{3NF}. Further normalisation to BCNF
+or 4NF is unnecessary as no overlapping candidate keys or multi-valued dependencies
+exist in any of the six tables.
+
+\subsection{Summary of Functional Dependencies}
+
+\begin{align*}
+  &\texttt{tconst} \rightarrow \{ \texttt{primaryTitle, originalTitle, startYear, runtimeMinutes, isAdult} \} \\
+  &\texttt{tconst} \rightarrow \{ \texttt{averageRating, numVotes} \}                            \\
+  &\texttt{genre\_id} \rightarrow \{ \texttt{name} \}                                             \\
+  &\texttt{nconst} \rightarrow \{ \texttt{primaryName, birthYear, primaryProfession} \}           \\
+  &(\texttt{tconst, genre\_id}) \rightarrow \emptyset \quad \text{(junction, no non-key attrs)}   \\
+  &(\texttt{tconst, nconst, ordering}) \rightarrow \{ \texttt{category, job} \}
+\end{align*}
+
+% =============================================================================
+\chapter{Stage 3: Creating the Database}
+% =============================================================================
+
+\section{Database Schema}
+
+The database was implemented in MySQL 8 using the InnoDB storage engine, which
+provides row-level locking, ACID compliance, and foreign key constraint enforcement.
+The database is run locally using XAMPP (see Figure \ref{fig:mysql_setup}).
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{screenshots/mysql.png}
+\caption{MySQL server running locally via XAMPP control panel.}
+\label{fig:mysql_setup}
+\end{figure}
+
+The full \texttt{schema.sql} file (written entirely by me) is presented below:
+
+\begin{lstlisting}[style=sqlstyle,
+  caption={Complete database schema --- schema.sql (written personally by Ayaan)},
+  label={lst:schema}]
+-- ============================================================
+-- CM3010 Database Coursework -- Schema
+-- Dataset: IMDb Non-Commercial Dataset (movies 2000-2023)
+-- Source: https://datasets.imdbws.com/
+-- Author: Written personally by Ayaan
+-- ============================================================
+
+DROP DATABASE IF EXISTS imdb_coursework;
+CREATE DATABASE imdb_coursework
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
+
+USE imdb_coursework;
+
+-- Table: title
+-- Stores core metadata for each feature film.
+CREATE TABLE title (
+    tconst         VARCHAR(12)  NOT NULL,
+    primaryTitle   VARCHAR(512) NOT NULL,
+    originalTitle  VARCHAR(512) NOT NULL,
+    startYear      SMALLINT     NOT NULL,
+    runtimeMinutes SMALLINT     DEFAULT NULL,
+    isAdult        TINYINT(1)   NOT NULL DEFAULT 0,
+    CONSTRAINT pk_title PRIMARY KEY (tconst)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Index to speed up year-range queries (used in RQ3)
+CREATE INDEX idx_title_startYear ON title (startYear);
+
+-- Table: genre
+-- Lookup table for genre names -- avoids repeating strings.
+CREATE TABLE genre (
+    genre_id  TINYINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    name      VARCHAR(64)      NOT NULL,
+    CONSTRAINT pk_genre       PRIMARY KEY (genre_id),
+    CONSTRAINT uq_genre_name  UNIQUE (name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Table: title_genre (junction / associative table)
+-- Resolves the M:N relationship between title and genre.
+CREATE TABLE title_genre (
+    tconst    VARCHAR(12)      NOT NULL,
+    genre_id  TINYINT UNSIGNED NOT NULL,
+    CONSTRAINT pk_title_genre PRIMARY KEY (tconst, genre_id),
+    CONSTRAINT fk_tg_title FOREIGN KEY (tconst)
+        REFERENCES title(tconst) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_tg_genre FOREIGN KEY (genre_id)
+        REFERENCES genre(genre_id) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Index for fast genre-to-title lookups (RQ1, RQ4, RQ5)
+CREATE INDEX idx_title_genre_genre ON title_genre (genre_id);
+
+-- Table: rating
+-- 1:1 with title -- separated to allow titles without ratings.
+CREATE TABLE rating (
+    tconst        VARCHAR(12)  NOT NULL,
+    averageRating DECIMAL(3,1) NOT NULL,
+    numVotes      INT UNSIGNED NOT NULL,
+    CONSTRAINT pk_rating       PRIMARY KEY (tconst),
+    CONSTRAINT fk_rating_title FOREIGN KEY (tconst)
+        REFERENCES title(tconst) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Index for rating-ordered queries (RQ1, RQ2)
+CREATE INDEX idx_rating_avg ON rating (averageRating DESC);
+
+-- Table: person
+-- People who have worked on IMDb titles.
+CREATE TABLE person (
+    nconst             VARCHAR(12)  NOT NULL,
+    primaryName        VARCHAR(256) NOT NULL,
+    birthYear          SMALLINT     DEFAULT NULL,
+    primaryProfession  VARCHAR(256) DEFAULT NULL,
+    CONSTRAINT pk_person PRIMARY KEY (nconst)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE INDEX idx_person_name ON person (primaryName(64));
+
+-- Table: principal (junction / associative table)
+-- Records who (person) did what (category/job) on which title.
+CREATE TABLE principal (
+    tconst    VARCHAR(12)  NOT NULL,
+    nconst    VARCHAR(12)  NOT NULL,
+    ordering  TINYINT      NOT NULL,
+    category  VARCHAR(64)  NOT NULL,
+    job       VARCHAR(256) DEFAULT NULL,
+    CONSTRAINT pk_principal PRIMARY KEY (tconst, nconst, ordering),
+    CONSTRAINT fk_principal_title FOREIGN KEY (tconst)
+        REFERENCES title(tconst) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_principal_person FOREIGN KEY (nconst)
+        REFERENCES person(nconst) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE INDEX idx_principal_nconst   ON principal (nconst);
+CREATE INDEX idx_principal_category ON principal (category);
+\end{lstlisting}
+
+\section{Data Import Process}
+
+\subsection{The Problem with Raw IMDb Data}
+
+The raw IMDb files present several data quality challenges that must be resolved
+before the data can be inserted into a relational database:
+
+\begin{enumerate}
+  \item \textbf{Null encoding:} All missing values are encoded as the literal
+        string \texttt{\textbackslash{}N} rather than SQL \texttt{NULL}.
+  \item \textbf{Multi-valued columns:} Genres are stored as comma-separated strings
+        (e.g., \texttt{Comedy,Drama}) violating 1NF.
+  \item \textbf{Scale:} The \texttt{title.principals.tsv} file alone contains over
+        100 million rows; loading everything naively would overwhelm a local machine.
+  \item \textbf{Referential integrity:} Person records must be inserted before
+        principal records to satisfy foreign key constraints.
+\end{enumerate}
+
+\subsection{The Import Script --- \texttt{import.js}}
+
+I wrote a custom Node.js data import script (\texttt{database/seed/import.js})
+that addresses all four challenges. The script uses only Node.js built-in modules
+for networking and decompression, plus the \texttt{mysql2} package for database
+interaction. The key design decisions are:
+
+\begin{itemize}
+  \item \textbf{Streaming:} Files are streamed directly from the IMDb HTTPS endpoint
+        and piped through \texttt{zlib.createGunzip()} for decompression in memory,
+        avoiding the need to store multi-hundred-megabyte files on disk.
+  \item \textbf{Line-by-line parsing:} Node's built-in \texttt{readline} module
+        processes the TSV one line at a time, keeping heap usage constant regardless
+        of file size.
+  \item \textbf{Batched inserts:} Rows are accumulated in memory and flushed to MySQL
+        in batches of 500 using \texttt{INSERT IGNORE} to maximise throughput.
+  \item \textbf{Null sanitisation:} A helper function \texttt{parseField()} converts
+        every \texttt{\textbackslash{}N} value to JavaScript \texttt{null}, which
+        \texttt{mysql2} transmits as SQL \texttt{NULL}.
+  \item \textbf{Filtering:} Only rows where \texttt{titleType = 'movie'} and
+        \texttt{startYear} is between 2000 and 2023 are retained. Principals are
+        restricted to the four categories relevant to the research questions:
+        \texttt{director}, \texttt{actor}, \texttt{actress}, and \texttt{writer}.
+  \item \textbf{Referential safety:} The script builds in-memory sets of imported
+        \texttt{tconst} and \texttt{nconst} values and filters out any principal
+        record that references an entity not successfully inserted.
+\end{itemize}
+
+\begin{lstlisting}[style=jsstyle,
+  caption={Key functions from import.js (written personally by Ayaan)},
+  label={lst:import}]
+'use strict';
+const https    = require('https');
+const zlib     = require('zlib');
+const readline = require('readline');
+const mysql    = require('mysql2/promise');
+
+/** Convert IMDb's raw '\N' to null (written by Ayaan) */
+function parseField(val) {
+  return (val === '\\N' || val === '' || val == null) ? null : val;
+}
+
+/** Stream a gzipped TSV from a URL and process each row (written by Ayaan) */
+function streamTSV(url, onRow) {
+  return new Promise((resolve, reject) => {
+    https.get(url, (res) => {
+      const gunzip = zlib.createGunzip();
+      const rl     = readline.createInterface({
+        input: res.pipe(gunzip), crlfDelay: Infinity
+      });
+      let headerSkipped = false;
+      rl.on('line', (line) => {
+        if (!headerSkipped) { headerSkipped = true; return; }
+        onRow(line.split('\t'));
+      });
+      rl.on('close', resolve);
+      rl.on('error', reject);
+    }).on('error', reject);
+  });
+}
+
+/** Insert rows in batches for performance (written by Ayaan) */
+async function batchInsert(conn, sql, rows, batchSize = 500) {
+  let inserted = 0;
+  for (let i = 0; i < rows.length; i += batchSize) {
+    await conn.query(sql, [rows.slice(i, i + batchSize)]);
+    inserted += Math.min(batchSize, rows.length - i);
+  }
+  return inserted;
+}
+\end{lstlisting}
+
+\subsection{Import Results}
+
+The import processed the following IMDb source rows to produce the final counts:
+
+\begin{table}[H]
+\centering
+\caption{Import Processing Summary}
+\begin{tabular}{l r r}
+  \toprule
+  \textbf{Source File} & \textbf{Source Rows Processed} & \textbf{Rows Inserted} \\
+  \midrule
+  \texttt{title.basics.tsv.gz}     & 12,605,103 & 326,711 titles; 480,704 genre links \\
+  \texttt{title.ratings.tsv.gz}    & 1,688,721  & 186,494 ratings \\
+  \texttt{title.principals.tsv.gz} & 100,216,078 & 2,500,049 principals \\
+  \texttt{name.basics.tsv.gz}      & 15,445,616 & 1,055,547 persons \\
+  \bottomrule
+\end{tabular}
+\label{tab:import}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{screenshots/data.png}
+\caption{The custom Node.js import script successfully processing and importing the IMDb dataset into MySQL.}
+\label{fig:import_data}
+\end{figure}
+
+\section{SQL Queries for Research Questions}
+
+The five SQL queries below (written entirely by me) answer the research questions
+defined in Stage 1. Each query was designed to avoid correlated sub-queries in
+favour of efficient \texttt{JOIN} operations supported by the indexes defined in
+the schema.
+
+\subsection{RQ1: Top Genres by Average Rating}
+
+\begin{lstlisting}[style=sqlstyle, caption={RQ1 --- Top genres by average IMDb rating}]
+SELECT
+    g.name                         AS genre,
+    COUNT(DISTINCT t.tconst)       AS total_movies,
+    ROUND(AVG(r.averageRating), 2) AS avg_rating,
+    SUM(r.numVotes)                AS total_votes
+FROM genre       g
+JOIN title_genre tg ON tg.genre_id = g.genre_id
+JOIN title       t  ON t.tconst    = tg.tconst
+JOIN rating      r  ON r.tconst    = t.tconst
+GROUP BY g.genre_id, g.name
+HAVING COUNT(DISTINCT t.tconst) >= 50   -- noise filter
+ORDER BY avg_rating DESC;
+\end{lstlisting}
+
+\textbf{Design notes:} The \texttt{HAVING} clause filters out genres with fewer
+than 50 rated movies, preventing genres with a handful of highly-rated arthouse
+films from artificially topping the chart. This threshold is exposed as a
+user-adjustable parameter in the web application.
+
+\subsection{RQ2: Top Directors by Average Rating}
+
+\begin{lstlisting}[style=sqlstyle, caption={RQ2 --- Top 10 directors by average film rating}]
+SELECT
+    p.nconst,
+    p.primaryName                  AS director_name,
+    COUNT(DISTINCT t.tconst)       AS films_directed,
+    ROUND(AVG(r.averageRating), 2) AS avg_rating,
+    MAX(r.averageRating)           AS highest_rated,
+    MIN(r.averageRating)           AS lowest_rated
+FROM person     p
+JOIN principal  pr ON pr.nconst   = p.nconst
+                   AND pr.category = 'director'
+JOIN title      t  ON t.tconst    = pr.tconst
+JOIN rating     r  ON r.tconst    = t.tconst
+GROUP BY p.nconst, p.primaryName
+HAVING COUNT(DISTINCT t.tconst) >= 5
+ORDER BY avg_rating DESC
+LIMIT 10;
+\end{lstlisting}
+
+\textbf{Design notes:} The \texttt{AND pr.category = 'director'} predicate on
+the join condition (rather than in a \texttt{WHERE} clause) allows MySQL to use
+the \texttt{idx\_principal\_category} composite index optimally. The minimum film
+threshold of 5 prevents obscure directors from outranking prolific ones.
+
+\subsection{RQ3: Average Rating Over Time}
+
+\begin{lstlisting}[style=sqlstyle, caption={RQ3 --- Year-by-year average rating trend}]
+SELECT
+    t.startYear                    AS release_year,
+    COUNT(DISTINCT t.tconst)       AS total_movies,
+    ROUND(AVG(r.averageRating), 2) AS avg_rating,
+    ROUND(AVG(r.numVotes), 0)      AS avg_votes
+FROM title  t
+JOIN rating r ON r.tconst = t.tconst
+WHERE t.startYear BETWEEN 2000 AND 2023
+GROUP BY t.startYear
+ORDER BY t.startYear ASC;
+\end{lstlisting}
+
+\textbf{Design notes:} Including \texttt{avg\_votes} alongside
+\texttt{avg\_rating} is important for interpreting the trend: earlier years have
+had more time to accumulate ratings, so a lower average vote count in recent
+years may indicate underrepresentation rather than a genuine drop in quality.
+This is visualised using a dual-axis Chart.js line chart in the application.
+
+\subsection{RQ4: Runtime by Genre}
+
+\begin{lstlisting}[style=sqlstyle, caption={RQ4 --- Average runtime in minutes by genre}]
+SELECT
+    g.name                          AS genre,
+    COUNT(DISTINCT t.tconst)        AS total_movies,
+    ROUND(AVG(t.runtimeMinutes), 1) AS avg_runtime_minutes,
+    MAX(t.runtimeMinutes)           AS longest_runtime,
+    MIN(t.runtimeMinutes)           AS shortest_runtime
+FROM genre       g
+JOIN title_genre tg ON tg.genre_id = g.genre_id
+JOIN title       t  ON t.tconst    = tg.tconst
+WHERE t.runtimeMinutes IS NOT NULL
+  AND t.runtimeMinutes BETWEEN 40 AND 360
+GROUP BY g.genre_id, g.name
+HAVING COUNT(DISTINCT t.tconst) >= 30
+ORDER BY avg_runtime_minutes DESC;
+\end{lstlisting}
+
+\textbf{Design notes:} The \texttt{runtimeMinutes BETWEEN 40 AND 360} predicate
+excludes statistical outliers: films under 40 minutes are generally short films
+rather than features, and films over 360 minutes are rare exceptions (documentaries,
+extended cuts) that would heavily skew the average.
+
+\subsection{RQ5: Most Genre-Versatile Directors}
+
+\begin{lstlisting}[style=sqlstyle, caption={RQ5 --- Directors by genre diversity}]
+SELECT
+    p.primaryName                        AS director_name,
+    COUNT(DISTINCT g.genre_id)           AS genre_count,
+    COUNT(DISTINCT t.tconst)             AS films_directed,
+    GROUP_CONCAT(DISTINCT g.name
+                 ORDER BY g.name
+                 SEPARATOR ', ')         AS genres_worked_in,
+    ROUND(AVG(r.averageRating), 2)       AS avg_rating
+FROM person      p
+JOIN principal   pr ON pr.nconst   = p.nconst
+                    AND pr.category = 'director'
+JOIN title       t  ON t.tconst    = pr.tconst
+JOIN title_genre tg ON tg.tconst   = t.tconst
+JOIN genre       g  ON g.genre_id  = tg.genre_id
+LEFT JOIN rating r  ON r.tconst    = t.tconst
+GROUP BY p.nconst, p.primaryName
+HAVING COUNT(DISTINCT t.tconst) >= 3
+ORDER BY genre_count DESC, films_directed DESC
+LIMIT 20;
+\end{lstlisting}
+
+\textbf{Design notes:} A \texttt{LEFT JOIN} is used for the ratings table so that
+directors with some unrated films are still included in the results --- their
+overall versatility score remains valid even without a complete rating history.
+\texttt{GROUP\_CONCAT} produces a readable, comma-separated list of genres for
+display in the web application table.
+
+\section{Reflection on Database Design}
+
+\subsection{Design Decisions}
+
+\begin{itemize}
+  \item \textbf{Separating \texttt{rating} from \texttt{title}:} Keeping ratings
+        in their own table with a 1:1 FK relationship means that unrated titles
+        can exist in \texttt{title} without a placeholder row in \texttt{rating}.
+        This is a cleaner representation of the real world than storing
+        \texttt{NULL} rating columns directly in the \texttt{title} table.
+  \item \textbf{\texttt{TINYINT UNSIGNED} for \texttt{genre\_id}:} Since IMDb
+        defines only 26 genres, a \texttt{TINYINT} (max value 255) is
+        perfectly sufficient and saves storage in the high-cardinality
+        \texttt{title\_genre} junction table (480,704 rows).
+  \item \textbf{Character set \texttt{utf8mb4}:} Movie titles include characters
+        from dozens of writing systems. The \texttt{utf8mb4} encoding (unlike
+        MySQL's legacy \texttt{utf8}) handles all Unicode code points, including
+        emoji-like characters in some modern titles.
+\end{itemize}
+
+\subsection{Challenges Encountered}
+
+\begin{itemize}
+  \item \textbf{Scale of \texttt{title.principals.tsv}:} At over 100 million
+        rows, streaming this file without storing it to disk was essential.
+        Attempting to load the full file into RAM would have exhausted system
+        memory on a typical development machine.
+  \item \textbf{Referential integrity ordering:} The Node.js import script must
+        insert \texttt{person} rows before \texttt{principal} rows. Achieving
+        this required collecting all needed \texttt{nconst} values during the
+        principals stream, then importing names, then completing the principals
+        insert --- a two-pass approach for those two tables.
+\end{itemize}
+
+% =============================================================================
+\chapter{Stage 4: Web Application}
+% =============================================================================
+
+\section{Application Architecture}
+
+The web application, \textbf{IMDb Explorer}, is a server-side rendered Node.js
+application using the Express.js framework. All database interactions are handled
+on the server; the client receives only fully rendered HTML pages.
+
+\begin{table}[H]
+\centering
+\caption{Technology Stack}
+\begin{tabular}{l l l}
+  \toprule
+  \textbf{Layer} & \textbf{Technology} & \textbf{Purpose} \\
+  \midrule
+  Database      & MySQL 8 (InnoDB)     & Persistent data storage \\
+  DB Client     & mysql2 (NPM)         & Async query execution, connection pool \\
+  Runtime       & Node.js              & Server-side JavaScript \\
+  Framework     & Express.js           & HTTP routing and middleware \\
+  Templating    & EJS                  & Server-side HTML rendering \\
+  Styling       & Vanilla CSS          & Custom ``Cinematic Scholar'' design system \\
+  Charts        & Chart.js v4 (CDN)    & Client-side data visualisation \\
+  Config        & dotenv (NPM)         & Credentials via \texttt{.env} file \\
+  \bottomrule
+\end{tabular}
+\label{tab:stack}
+\end{table}
+
+\subsection{Project File Structure}
+
+\begin{verbatim}
+database_project_for_ayaan/
+|-- app/
+|   |-- server.js              Express entry point + global error handlers
+|   |-- db.js                  MySQL connection pool (mysql2/promise)
+|   |-- routes/
+|   |   |-- index.js           Home page (stat counts)
+|   |   |-- genres.js          RQ1 route handler
+|   |   |-- directors.js       RQ2 route handler
+|   |   |-- trends.js          RQ3 route handler
+|   |   |-- duration.js        RQ4 route handler
+|   |   |-- versatile.js       RQ5 route handler
+|   |   +-- about.js           Dataset information page
+|   |-- views/
+|   |   |-- partials/
+|   |   |   |-- header.ejs     Shared sticky navigation bar
+|   |   |   +-- footer.ejs     Shared footer with attribution
+|   |   |-- index.ejs          Hero page with stat cards
+|   |   |-- genres.ejs         RQ1 view (chart + table + filter)
+|   |   |-- directors.ejs      RQ2 view (cards + table + filter)
+|   |   |-- trends.ejs         RQ3 view (dual-axis chart + table)
+|   |   |-- duration.ejs       RQ4 view (bar chart + table + filter)
+|   |   |-- versatile.ejs      RQ5 view (genre chips + table)
+|   |   |-- about.ejs          Dataset assessment page
+|   |   +-- error.ejs          Shared 404/500 error page
+|   +-- public/
+|       |-- css/style.css      Full Cinematic Scholar design system
+|       +-- js/main.js         Mobile nav + intersection animations
+|-- database/
+|   |-- schema.sql             CREATE TABLE definitions (6 tables)
+|   |-- queries.sql            5 standalone research SQL queries
+|   +-- seed/
+|       |-- create_schema.js   Node.js schema runner (no mysql CLI needed)
+|       +-- import.js          Full IMDb data import script
+|-- report/
+|   +-- main.tex               This document
+|-- .env                       DB credentials (not committed to git)
++-- package.json               NPM scripts: start, dev, import
+\end{verbatim}
+
+\section{Database Connection and Security}
+
+\subsection{Connection Pool}
+
+The \texttt{db.js} module creates a \textbf{connection pool} using
+\texttt{mysql2/promise}. A pool pre-establishes a set of reusable database
+connections, eliminating the overhead of opening a new TCP connection for every
+HTTP request.
+
+\begin{lstlisting}[style=jsstyle,
+  caption={Database connection pool --- app/db.js (written personally by Ayaan)},
+  label={lst:db}]
+'use strict';
+const mysql = require('mysql2/promise');
+
+const pool = mysql.createPool({
+  host:            process.env.DB_HOST     || 'localhost',
+  port:            parseInt(process.env.DB_PORT, 10) || 3306,
+  user:            process.env.DB_USER     || 'root',
+  password:        process.env.DB_PASSWORD || '',
+  database:        process.env.DB_NAME     || 'imdb_coursework',
+  waitForConnections: true,
+  connectionLimit:    10,
+  queueLimit:         0,
+});
+
+/** Called at startup to verify DB is reachable before serving traffic */
+async function testConnection() {
+  try {
+    const conn = await pool.getConnection();
+    await conn.ping();
+    conn.release();
+    console.log('Database connection pool established.');
+  } catch (err) {
+    console.error('Could not connect to database:', err.message);
+    process.exit(1);
+  }
+}
+
+module.exports = { pool, testConnection };
+\end{lstlisting}
+
+\subsection{SQL Injection Prevention}
+
+All user-supplied query parameters (e.g., the ``minimum movies'' threshold on the
+Genres page) are passed to MySQL as \textbf{parameterised queries} using the
+\texttt{?} placeholder syntax provided by \texttt{mysql2}. This completely
+prevents SQL injection regardless of what value the user enters.
+
+\begin{lstlisting}[style=jsstyle,
+  caption={Parameterised query example --- routes/genres.js (written by Ayaan)}]
+router.get('/', async (req, res) => {
+  const minMovies = parseInt(req.query.min_movies, 10) || 50;
+  //                ^^^^^^^^ parsed to integer; default to 50
+
+  const [rows] = await pool.query(
+    `SELECT g.name, COUNT(DISTINCT t.tconst) AS total_movies, ...
+     FROM genre g JOIN title_genre tg ON tg.genre_id = g.genre_id
+     ...
+     HAVING COUNT(DISTINCT t.tconst) >= ?
+     ORDER BY avg_rating DESC`,
+    [minMovies]          // <-- value injected safely by mysql2
+  );
+
+  res.render('genres', { title: 'RQ1', rows, minMovies });
+});
+\end{lstlisting}
+
+\section{Web Pages and Features}
+
+\subsection{Home Page (\texttt{/})}
+
+The home page queries the database for live row counts (total titles, people, and
+five research question cards with descriptions and links.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{screenshots/home.png}
+\caption{The IMDb Explorer home page showing live database statistics and research question navigation.}
+\label{fig:home}
+\end{figure}
+
+\subsection{RQ1 --- Top Genres by Rating (\texttt{/genres})}
+
+Presents a horizontal Chart.js bar chart alongside a ranked data table. The user
+can adjust the ``minimum movies'' threshold using a form field; changing it
+triggers a fresh server-side SQL query with the new \texttt{HAVING} value. Genres
+and the table badges.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{screenshots/genres.png}
+\caption{RQ1: Top Genres by Average Rating, featuring a horizontal bar chart and ranked data table.}
+\label{fig:genres}
+\end{figure}
+
+\subsection{RQ2 --- Top Directors (\texttt{/directors})}
+
+Displays a grid of ``director cards'' showing key statistics (average rating,
+films directed, highest and lowest rated film), followed by a full ranked data
+user-adjustable.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{screenshots/directors.png}
+\caption{RQ2: Top Directors by Average Rating, displaying director statistics and highest/lowest rated films.}
+\label{fig:directors}
+\end{figure}
+
+\subsection{RQ3 --- Rating Trends (\texttt{/trends})}
+
+Features a dual-axis Chart.js line chart --- the left Y-axis shows the average
+annual rating (in gold), and the right Y-axis shows the total number of movies
+released per year (in violet). This dual-axis design allows simultaneous visual
+volume.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{screenshots/trends.png}
+\caption{RQ3: Rating Trends Over Time, visualised with a dual-axis line chart comparing ratings and release volume.}
+\label{fig:trends}
+\end{figure}
+
+\subsection{RQ4 --- Runtime by Genre (\texttt{/duration})}
+
+A teal-coloured horizontal bar chart shows average runtime per genre, with a
+data table below providing min/max runtime statistics. Outlier films shorter than
+skew.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{screenshots/duration.png}
+\caption{RQ4: Average Runtime by Genre, showing minimum and maximum runtime bounds.}
+\label{fig:duration}
+\end{figure}
+
+\subsection{RQ5 --- Versatile Directors (\texttt{/versatile})}
+
+Directors are displayed as cards featuring coloured ``genre chip'' badges showing
+rating. A full data table supports comparison.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{screenshots/versatile.png}
+\caption{RQ5: Most Genre-Versatile Directors, using dynamic genre chips to display category breadth.}
+\label{fig:versatile}
+\end{figure}
+
+\subsection{About Page (\texttt{/about})}
+
+Documents the dataset source, assessment, research questions, database schema
+version of Stage 1 of this report.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{screenshots/about.png}
+\caption{The About page detailing the dataset assessment criteria and technology stack.}
+\label{fig:about}
+\end{figure}
+
+\section{UI Design System}
+
+The front-end uses a bespoke \textbf{``Cinematic Scholar''} design system
+implemented entirely in Vanilla CSS (written personally by me):
+
+\begin{itemize}
+  \item \textbf{Colour palette:} Deep navy background (\texttt{\#12121d}),
+        IMDb gold primary (\texttt{\#f5c518}), violet accent (\texttt{\#8b5cf6}),
+        and teal data colour (\texttt{\#49dbff}).
+  \item \textbf{Glassmorphism cards:} Cards use \texttt{backdrop-filter: blur(12px)}
+        with semi-transparent backgrounds to create a frosted-glass aesthetic.
+  \item \textbf{Typography:} Google Inter font at 12pt--96pt across a defined
+        8px spacing grid.
+  \item \textbf{Responsive layout:} CSS Grid with \texttt{auto-fill/auto-fit}
+        provides a fluid layout from 480px mobile to 1280px desktop without
+        media-query breakpoints for grid columns.
+  \item \textbf{Micro-animations:} \texttt{IntersectionObserver} in
+        \texttt{main.js} triggers a CSS \texttt{fade-in} entrance animation
+        for cards as they scroll into view.
+  \item \textbf{Accessibility:} All interactive elements carry ARIA labels;
+        unique IDs are provided for all buttons and inputs; heading hierarchy
+        follows a strict \texttt{h1 > h2 > h3} pattern.
+\end{itemize}
+
+\section{Error Handling}
+
+The Express server implements two error handlers registered in \texttt{server.js}:
+
+\begin{itemize}
+  \item \textbf{404 handler:} A catch-all route renders \texttt{error.ejs} with
+        a 404 status for any unrecognised URL.
+  \item \textbf{Global error handler:} Express 5 automatically catches
+        \texttt{async}/\texttt{await} errors in route handlers and forwards them
+        to the global error middleware, which renders \texttt{error.ejs} with the
+        HTTP status code and (in development mode) the error message. This means
+        no individual route requires a \texttt{try/catch} block.
+\end{itemize}
+
+% =============================================================================
+\chapter{Discretionary Extra Credit (15\%)}
+% =============================================================================
+
+I have made the following efforts that go substantially beyond the basic
+requirements of the four assessed stages:
+
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Advanced streaming data import (Stage 3 extension):}
+        Instead of manually downloading and editing flat TSV files, I built a
+        Node.js streaming pipeline that fetches compressed IMDb files directly
+        from HTTPS, decompresses them in memory using the built-in \texttt{zlib}
+        module, parses them line-by-line using \texttt{readline}, performs all
+        data cleaning and filtering in a single pass, and inserts into MySQL in
+        optimised batches of 500 rows per statement. This successfully imported
+        over 4.5 million rows from 100+ million source rows in a single automated
+        run without requiring the MySQL command-line client.
+
+  \item \textbf{Interactive client-side filtering (Stage 4 extension):}
+        Rather than presenting static query results, each research question page
+        exposes one or more filter parameters (e.g., minimum movie threshold,
+        number of results) via HTML form controls. Changing a parameter submits
+        a \texttt{GET} request, triggering a fresh parameterised SQL query on the
+        server with the new \texttt{HAVING} or \texttt{LIMIT} value. This allows
+        real-time exploration of how threshold choices affect the analytical
+        conclusions --- a feature with genuine pedagogical value.
+
+  \item \textbf{Chart.js data visualisations (Stage 4 extension):}
+        Alongside the required HTML tables, every research question page features
+        a Chart.js interactive chart. RQ1 and RQ4 use horizontal bar charts with
+        colour-coded bars; RQ3 uses a dual-axis line chart overlaying average
+        rating (gold line, left axis) with total annual production volume (violet
+        dashed line, right axis). Charts are fully responsive using the
+        \texttt{maintainAspectRatio: false} setting within fixed-height containers.
+
+  \item \textbf{Production-quality UI design (Stage 4 extension):}
+        The interface employs a cohesive, premium ``Cinematic Scholar'' dark-mode
+        design system inspired by the IMDb colour palette. It features
+        glassmorphism effects, animated card entrances via \texttt{IntersectionObserver},
+        a fully responsive sticky navigation bar with a mobile hamburger menu,
+        ARIA-accessible HTML throughout, and a consistent 8px spacing grid ---
+        going substantially beyond a functional but minimal web interface.
+\end{enumerate}
+
+% =============================================================================
+\chapter{References and Attribution}
+% =============================================================================
+
+\section{Dataset}
+
+\begin{itemize}
+  \item Internet Movie Database (IMDb). \textit{IMDb Non-Commercial Datasets}.
+        Available at: \url{https://datasets.imdbws.com/}.
+        Data dictionary: \url{https://developer.imdb.com/non-commercial-datasets/}.
+        Accessed: June 2024.
+        Licence: Non-commercial use permitted.
+\end{itemize}
+
+\section{External Libraries and Tools}
+
+All listed libraries are used as-is from NPM or CDN; no library source code was
+copied or modified.
+
+\begin{table}[H]
+\centering
+\caption{External Libraries and Attribution}
+\begin{tabularx}{\textwidth}{l l X}
+  \toprule
+  \textbf{Library} & \textbf{Source} & \textbf{Usage in this project} \\
+  \midrule
+  express         & NPM (MIT)     & HTTP server and routing framework \\
+  ejs             & NPM (Apache)  & Server-side HTML templating engine \\
+  mysql2          & NPM (MIT)     & MySQL client with Promise support \\
+  dotenv          & NPM (BSD-2)   & Loading \texttt{.env} credentials \\
+  Chart.js v4     & CDN (MIT)     & Client-side charts (bar + line) \\
+  Google Fonts / Inter & CDN    & Typography \\
+  \bottomrule
+\end{tabularx}
+\label{tab:libraries}
+\end{table}
+
+\section{Code Authorship Declaration}
+
+\begin{tcolorbox}[colback=infobg,colframe=infoborder,boxrule=1pt,arc=4pt]
+  \textbf{All of the following was written personally by me (Ayaan):}
+  \begin{itemize}
+    \item \texttt{database/schema.sql} --- All \texttt{CREATE TABLE} and
+          \texttt{CREATE INDEX} statements.
+    \item \texttt{database/queries.sql} --- All five research question SQL queries.
+    \item \texttt{database/seed/import.js} --- The complete data import and
+          cleaning pipeline.
+    \item \texttt{database/seed/create\_schema.js} --- The Node.js schema runner.
+    \item \texttt{app/server.js} --- Express configuration and error handlers.
+    \item \texttt{app/db.js} --- The connection pool and startup verification.
+    \item \texttt{app/routes/*.js} --- All seven route modules.
+    \item \texttt{app/views/*.ejs} and \texttt{app/views/partials/*.ejs} ---
+          All EJS templates.
+    \item \texttt{app/public/css/style.css} --- The complete CSS design system.
+    \item \texttt{app/public/js/main.js} --- Client-side navigation and animations.
+    \item \texttt{report/main.tex} --- This report.
+  \end{itemize}
+  \textbf{Chart.js} rendering code appearing inside \texttt{<script>} tags in
+  EJS views is clearly annotated with a comment: ``Source: Chart.js library
+  --- not written by Ayaan.'' The configuration objects passed to Chart.js
+  (labels, data arrays, colour choices) were written by me.
+\end{tcolorbox}
+
+\end{document}

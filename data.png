@@ -1,0 +1,119 @@
+-- ============================================================
+-- CM3010 Database Coursework — Schema
+-- Dataset: IMDb Non-Commercial Dataset (subset: movies 2000-2023)
+-- Source: https://datasets.imdbws.com/
+-- Author: Written personally by Ayaan
+-- ============================================================
+
+-- Drop and recreate the database for a clean setup
+DROP DATABASE IF EXISTS imdb_coursework;
+CREATE DATABASE imdb_coursework
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
+
+USE imdb_coursework;
+
+-- ============================================================
+-- Table: title
+-- Stores core metadata for each movie/TV title.
+-- Corresponds to title.basics.tsv from IMDb.
+-- ============================================================
+CREATE TABLE title (
+    tconst        VARCHAR(12)  NOT NULL,   -- IMDb title identifier (e.g. tt0000001)
+    primaryTitle  VARCHAR(512) NOT NULL,   -- The title used by promotional materials
+    originalTitle VARCHAR(512) NOT NULL,   -- Original language title
+    startYear     SMALLINT     NOT NULL,   -- Release year
+    runtimeMinutes SMALLINT    DEFAULT NULL, -- Length of the title in minutes
+    isAdult       TINYINT(1)   NOT NULL DEFAULT 0, -- 0 = non-adult, 1 = adult title
+    CONSTRAINT pk_title PRIMARY KEY (tconst)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Index to speed up year-range queries (used in RQ3)
+CREATE INDEX idx_title_startYear ON title (startYear);
+
+-- ============================================================
+-- Table: genre
+-- Lookup table for genre names — avoids repeating strings.
+-- Supports normalised many-to-many with title_genre.
+-- ============================================================
+CREATE TABLE genre (
+    genre_id  TINYINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    name      VARCHAR(64)      NOT NULL,
+    CONSTRAINT pk_genre  PRIMARY KEY (genre_id),
+    CONSTRAINT uq_genre_name UNIQUE (name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================
+-- Table: title_genre  (junction / associative table)
+-- Resolves the M:N relationship between title and genre.
+-- A title can belong to multiple genres; a genre has many titles.
+-- ============================================================
+CREATE TABLE title_genre (
+    tconst    VARCHAR(12)      NOT NULL,
+    genre_id  TINYINT UNSIGNED NOT NULL,
+    CONSTRAINT pk_title_genre PRIMARY KEY (tconst, genre_id),
+    CONSTRAINT fk_tg_title FOREIGN KEY (tconst)
+        REFERENCES title(tconst) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_tg_genre FOREIGN KEY (genre_id)
+        REFERENCES genre(genre_id) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Index for fast genre → title lookups (used in RQ1, RQ4, RQ5)
+CREATE INDEX idx_title_genre_genre ON title_genre (genre_id);
+
+-- ============================================================
+-- Table: rating
+-- Stores aggregated user ratings from IMDb.
+-- 1:1 with title — separated to allow titles without ratings.
+-- Corresponds to title.ratings.tsv from IMDb.
+-- ============================================================
+CREATE TABLE rating (
+    tconst        VARCHAR(12)    NOT NULL,
+    averageRating DECIMAL(3,1)   NOT NULL, -- e.g. 7.5 — one decimal place
+    numVotes      INT UNSIGNED   NOT NULL, -- total votes cast
+    CONSTRAINT pk_rating PRIMARY KEY (tconst),
+    CONSTRAINT fk_rating_title FOREIGN KEY (tconst)
+        REFERENCES title(tconst) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Index for rating-ordered queries (used in RQ1, RQ2)
+CREATE INDEX idx_rating_avg ON rating (averageRating DESC);
+
+-- ============================================================
+-- Table: person
+-- Stores people who have worked on IMDb titles.
+-- Corresponds to name.basics.tsv from IMDb.
+-- ============================================================
+CREATE TABLE person (
+    nconst              VARCHAR(12)  NOT NULL,  -- IMDb name identifier (e.g. nm0000001)
+    primaryName         VARCHAR(256) NOT NULL,  -- Full name
+    birthYear           SMALLINT     DEFAULT NULL,
+    primaryProfession   VARCHAR(256) DEFAULT NULL, -- Comma-separated list from IMDb
+    CONSTRAINT pk_person PRIMARY KEY (nconst)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Full-text index to support name search feature in web app
+CREATE INDEX idx_person_name ON person (primaryName(64));
+
+-- ============================================================
+-- Table: principal
+-- Resolves M:N between title and person.
+-- Records who (person) did what (category/job) on which title.
+-- Corresponds to title.principals.tsv from IMDb.
+-- ============================================================
+CREATE TABLE principal (
+    tconst    VARCHAR(12)  NOT NULL,
+    nconst    VARCHAR(12)  NOT NULL,
+    ordering  TINYINT      NOT NULL,   -- Position in the credits list
+    category  VARCHAR(64)  NOT NULL,   -- e.g. 'director', 'actor', 'actress'
+    job       VARCHAR(256) DEFAULT NULL, -- Specific job description
+    CONSTRAINT pk_principal PRIMARY KEY (tconst, nconst, ordering),
+    CONSTRAINT fk_principal_title FOREIGN KEY (tconst)
+        REFERENCES title(tconst) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_principal_person FOREIGN KEY (nconst)
+        REFERENCES person(nconst) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Indexes for director-focused queries (used in RQ2, RQ5)
+CREATE INDEX idx_principal_nconst   ON principal (nconst);
+CREATE INDEX idx_principal_category ON principal (category);

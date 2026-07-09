@@ -1,0 +1,54 @@
+<%#
+  partials/header.ejs — Shared navigation header
+  CM3010 Database Coursework
+  Author: Written personally by Ayaan
+  Design system: "Cinematic Scholar" (generated via Stitch MCP)
+%>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="IMDb Explorer — CM3010 Database Coursework. Analysing 80,000+ movies from 2000-2023 using MySQL and Node.js." />
+  <title><%= title %> | IMDb Explorer</title>
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- App stylesheet -->
+  <link rel="stylesheet" href="/css/style.css" />
+
+  <!-- Chart.js — loaded in <head> so inline chart scripts on each page can use it immediately -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+  <!-- ── Sticky Navigation Bar ──────────────────────────────── -->
+  <header class="navbar" role="banner">
+    <div class="navbar__inner container">
+      <a href="/" class="navbar__logo" aria-label="IMDb Explorer Home">
+        <span class="logo-star">&#9733;</span> IMDb Explorer
+      </a>
+
+      <button class="navbar__toggle" id="nav-toggle" aria-label="Toggle navigation" aria-expanded="false" aria-controls="nav-menu">
+        <span></span><span></span><span></span>
+      </button>
+
+      <nav id="nav-menu" class="navbar__menu" aria-label="Main navigation">
+        <ul role="list">
+          <li><a href="/"           class="nav-link">Home</a></li>
+          <li><a href="/genres"     class="nav-link">Genres</a></li>
+          <li><a href="/directors"  class="nav-link">Directors</a></li>
+          <li><a href="/trends"     class="nav-link">Trends</a></li>
+          <li><a href="/duration"   class="nav-link">Runtime</a></li>
+          <li><a href="/versatile"  class="nav-link">Versatile</a></li>
+          <li><a href="/about"      class="nav-link">About</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ── Page content starts here ──────────────────────────── -->
+  <main id="main-content">

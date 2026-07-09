@@ -1,0 +1,100 @@
+<%#
+  directors.ejs — RQ2: Top Directors by Average Rating
+  CM3010 Database Coursework
+  Author: Written personally by Ayaan
+%>
+<%- include('partials/header') %>
+
+<section class="page-hero page-hero--violet">
+  <div class="container">
+    <p class="label-caps page-hero__tag">Research Question 2</p>
+    <h1 class="page-hero__title">Top Directors by Rating</h1>
+    <p class="page-hero__desc">Ranking the most critically acclaimed directors with at least 5 films.</p>
+  </div>
+</section>
+
+<section class="content-section">
+  <div class="container">
+
+    <!-- Filter bar -->
+    <form class="filter-bar" method="GET" action="/directors" aria-label="Filter director results">
+      <label for="min-films" class="filter-bar__label">Minimum films directed:</label>
+      <input type="number" id="min-films" name="min_films"
+             value="<%= minFilms %>" min="1" max="100"
+             class="filter-bar__input" />
+      <label for="top-limit" class="filter-bar__label" style="margin-left:1rem;">Show top:</label>
+      <input type="number" id="top-limit" name="limit"
+             value="<%= limit %>" min="5" max="50"
+             class="filter-bar__input filter-bar__input--sm" />
+      <button type="submit" class="btn btn--primary btn--sm" id="btn-filter-directors">Apply</button>
+    </form>
+
+    <% if (rows.length > 0) { %>
+
+    <!-- Director cards grid -->
+    <div class="director-grid" role="list" aria-label="Top directors ranked by average rating">
+      <% rows.forEach((row, i) => { %>
+      <article class="director-card" role="listitem">
+        <div class="director-card__rank" aria-label="Rank <%= i + 1 %>">#<%= i + 1 %></div>
+        <h3 class="director-card__name"><%= row.director_name %></h3>
+        <div class="director-card__stats">
+          <div class="director-card__stat">
+            <span class="stat-label label-caps">Avg Rating</span>
+            <span class="stat-value gold-text"><%= row.avg_rating %></span>
+          </div>
+          <div class="director-card__stat">
+            <span class="stat-label label-caps">Films</span>
+            <span class="stat-value"><%= row.films_directed %></span>
+          </div>
+          <div class="director-card__stat">
+            <span class="stat-label label-caps">Best</span>
+            <span class="stat-value gold-text"><%= row.highest_rated %></span>
+          </div>
+          <div class="director-card__stat">
+            <span class="stat-label label-caps">Lowest</span>
+            <span class="stat-value"><%= row.lowest_rated %></span>
+          </div>
+        </div>
+      </article>
+      <% }) %>
+    </div>
+
+    <!-- Data table -->
+    <div class="table-wrap" style="margin-top:2rem;">
+      <table class="data-table" aria-label="Directors ranked by average rating">
+        <caption class="sr-only">Directors ranked by their average IMDb film rating</caption>
+        <thead>
+          <tr>
+            <th scope="col">#</th>
+            <th scope="col">Director</th>
+            <th scope="col">Films</th>
+            <th scope="col">Avg Rating</th>
+            <th scope="col">Highest</th>
+            <th scope="col">Lowest</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% rows.forEach((row, i) => { %>
+          <tr>
+            <td class="rank-cell"><%= i + 1 %></td>
+            <td><strong><%= row.director_name %></strong></td>
+            <td><%= row.films_directed %></td>
+            <td><span class="rating-badge rating-badge--gold">⭐ <%= row.avg_rating %></span></td>
+            <td class="gold-text"><%= row.highest_rated %></td>
+            <td><%= row.lowest_rated %></td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+
+    <% } else { %>
+    <div class="empty-state">
+      <p>No directors found with &ge; <%= minFilms %> films. Try a lower threshold.</p>
+    </div>
+    <% } %>
+
+  </div>
+</section>
+
+<%- include('partials/footer') %>

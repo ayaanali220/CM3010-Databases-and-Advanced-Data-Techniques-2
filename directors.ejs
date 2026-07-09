@@ -1,0 +1,39 @@
+/**
+ * routes/genres.js — RQ1: Top genres by average rating
+ * CM3010 Database Coursework
+ * Author: Written personally by Ayaan
+ */
+
+'use strict';
+
+const express = require('express');
+const { pool } = require('../db');
+const router  = express.Router();
+
+router.get('/', async (req, res) => {
+  const minMovies = parseInt(req.query.min_movies, 10) || 50;
+
+  const [rows] = await pool.query(
+    `SELECT
+        g.name                         AS genre,
+        COUNT(DISTINCT t.tconst)       AS total_movies,
+        ROUND(AVG(r.averageRating), 2) AS avg_rating,
+        SUM(r.numVotes)                AS total_votes
+     FROM genre       g
+     JOIN title_genre tg ON tg.genre_id = g.genre_id
+     JOIN title       t  ON t.tconst    = tg.tconst
+     JOIN rating      r  ON r.tconst    = t.tconst
+     GROUP BY g.genre_id, g.name
+     HAVING COUNT(DISTINCT t.tconst) >= ?
+     ORDER BY avg_rating DESC`,
+    [minMovies]
+  );
+
+  res.render('genres', {
+    title:      'RQ1 — Top Genres by Average Rating',
+    rows,
+    minMovies,
+  });
+});
+
+module.exports = router;

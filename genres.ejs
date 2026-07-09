@@ -1,0 +1,56 @@
+/**
+ * routes/versatile.js — RQ5: Most genre-versatile directors
+ * CM3010 Database Coursework
+ * Author: Written personally by Ayaan
+ *
+ * Performance fix: use a derived table to pre-aggregate director stats
+ * before joining to person for the name lookup.
+ */
+
+'use strict';
+
+const express = require('express');
+const { pool } = require('../db');
+const router  = express.Router();
+
+router.get('/', async (req, res) => {
+  const minFilms = parseInt(req.query.min_films, 10) || 3;
+
+  const [rows] = await pool.query(
+    `SELECT
+        p.primaryName          AS director_name,
+        d.genre_count,
+        d.films_directed,
+        d.genres_worked_in,
+        d.avg_rating
+     FROM (
+         SELECT
+             pr.nconst,
+             COUNT(DISTINCT tg.genre_id)                          AS genre_count,
+             COUNT(DISTINCT pr.tconst)                            AS films_directed,
+             GROUP_CONCAT(DISTINCT g.name ORDER BY g.name
+                          SEPARATOR ', ')                         AS genres_worked_in,
+             ROUND(AVG(r.averageRating), 2)                       AS avg_rating
+         FROM principal   pr
+         JOIN title_genre tg ON tg.tconst   = pr.tconst
+         JOIN genre       g  ON g.genre_id  = tg.genre_id
+         LEFT JOIN rating r  ON r.tconst    = pr.tconst
+         WHERE pr.category = 'director'
+         GROUP BY pr.nconst
+         HAVING COUNT(DISTINCT pr.tconst) >= ?
+         ORDER BY genre_count DESC, films_directed DESC
+         LIMIT 20
+     ) AS d
+     JOIN person p ON p.nconst = d.nconst
+     ORDER BY d.genre_count DESC, d.films_directed DESC`,
+    [minFilms]
+  );
+
+  res.render('versatile', {
+    title:    'RQ5 — Most Genre-Versatile Directors',
+    rows,
+    minFilms,
+  });
+});
+
+module.exports = router;

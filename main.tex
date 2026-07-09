@@ -1,0 +1,91 @@
+<%#
+  versatile.ejs — RQ5: Most Genre-Versatile Directors
+  CM3010 Database Coursework
+  Author: Written personally by Ayaan
+%>
+<%- include('partials/header') %>
+
+<section class="page-hero page-hero--violet">
+  <div class="container">
+    <p class="label-caps page-hero__tag">Research Question 5</p>
+    <h1 class="page-hero__title">Versatile Directors</h1>
+    <p class="page-hero__desc">Which directors work across the greatest diversity of film genres?</p>
+  </div>
+</section>
+
+<section class="content-section">
+  <div class="container">
+
+    <form class="filter-bar" method="GET" action="/versatile" aria-label="Filter by minimum films">
+      <label for="min-films-v" class="filter-bar__label">Minimum films directed:</label>
+      <input type="number" id="min-films-v" name="min_films"
+             value="<%= minFilms %>" min="1" max="50"
+             class="filter-bar__input" />
+      <button type="submit" class="btn btn--primary btn--sm" id="btn-filter-versatile">Apply</button>
+    </form>
+
+    <% if (rows.length > 0) { %>
+
+    <!-- Versatility cards -->
+    <div class="versatile-grid" role="list" aria-label="Most genre-versatile directors">
+      <% rows.forEach((row, i) => { %>
+      <article class="versatile-card" role="listitem">
+        <div class="versatile-card__header">
+          <span class="rank-badge">#<%= i + 1 %></span>
+          <h3 class="versatile-card__name"><%= row.director_name %></h3>
+        </div>
+        <div class="versatile-card__meta">
+          <span class="meta-chip meta-chip--gold" aria-label="<%= row.genre_count %> genres">
+            🎨 <%= row.genre_count %> genres
+          </span>
+          <span class="meta-chip" aria-label="<%= row.films_directed %> films">
+            🎬 <%= row.films_directed %> films
+          </span>
+          <% if (row.avg_rating) { %>
+          <span class="meta-chip meta-chip--violet" aria-label="Average rating <%= row.avg_rating %>">
+            ⭐ <%= row.avg_rating %>
+          </span>
+          <% } %>
+        </div>
+        <p class="versatile-card__genres"><%= row.genres_worked_in %></p>
+      </article>
+      <% }) %>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrap" style="margin-top:2rem;">
+      <table class="data-table" aria-label="Genre-versatile directors">
+        <caption class="sr-only">Directors ranked by number of distinct genres they have worked in</caption>
+        <thead>
+          <tr>
+            <th scope="col">#</th>
+            <th scope="col">Director</th>
+            <th scope="col">Genres</th>
+            <th scope="col">Films</th>
+            <th scope="col">Avg Rating</th>
+            <th scope="col">Genres Worked In</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% rows.forEach((row, i) => { %>
+          <tr>
+            <td class="rank-cell"><%= i + 1 %></td>
+            <td><strong><%= row.director_name %></strong></td>
+            <td class="gold-text"><strong><%= row.genre_count %></strong></td>
+            <td><%= row.films_directed %></td>
+            <td><%= row.avg_rating || '—' %></td>
+            <td class="genre-list-cell"><%= row.genres_worked_in %></td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+
+    <% } else { %>
+    <div class="empty-state"><p>No directors found with &ge; <%= minFilms %> films. Try a lower threshold.</p></div>
+    <% } %>
+
+  </div>
+</section>
+
+<%- include('partials/footer') %>

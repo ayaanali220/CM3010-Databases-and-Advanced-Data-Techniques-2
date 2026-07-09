@@ -1,0 +1,104 @@
+-- ============================================================
+-- CM3010 Database Coursework — Research Question Queries
+-- Dataset: IMDb Non-Commercial Dataset (movies 2000–2023)
+-- Author: Written personally by Ayaan
+-- ============================================================
+
+USE imdb_coursework;
+
+-- ============================================================
+-- RQ1: Which genres have the highest average IMDb rating?
+-- (Only genres with at least 50 rated movies are included
+--  to avoid noise from genres with very few titles)
+-- ============================================================
+SELECT
+    g.name                         AS genre,
+    COUNT(DISTINCT t.tconst)       AS total_movies,
+    ROUND(AVG(r.averageRating), 2) AS avg_rating,
+    SUM(r.numVotes)                AS total_votes
+FROM genre          g
+JOIN title_genre    tg ON tg.genre_id = g.genre_id
+JOIN title          t  ON t.tconst    = tg.tconst
+JOIN rating         r  ON r.tconst    = t.tconst
+GROUP BY g.genre_id, g.name
+HAVING COUNT(DISTINCT t.tconst) >= 50
+ORDER BY avg_rating DESC;
+
+-- ============================================================
+-- RQ2: Who are the top 10 directors by average rating?
+-- (Directors who have directed at least 5 rated movies)
+-- ============================================================
+SELECT
+    p.nconst,
+    p.primaryName                  AS director_name,
+    COUNT(DISTINCT t.tconst)       AS films_directed,
+    ROUND(AVG(r.averageRating), 2) AS avg_rating,
+    MAX(r.averageRating)           AS highest_rated,
+    MIN(r.averageRating)           AS lowest_rated
+FROM person         p
+JOIN principal      pr ON pr.nconst   = p.nconst
+                       AND pr.category = 'director'
+JOIN title          t  ON t.tconst    = pr.tconst
+JOIN rating         r  ON r.tconst    = t.tconst
+GROUP BY p.nconst, p.primaryName
+HAVING COUNT(DISTINCT t.tconst) >= 5
+ORDER BY avg_rating DESC
+LIMIT 10;
+
+-- ============================================================
+-- RQ3: How has the average movie rating changed by year?
+-- (Year-by-year trend from 2000 to 2023)
+-- ============================================================
+SELECT
+    t.startYear                    AS release_year,
+    COUNT(DISTINCT t.tconst)       AS total_movies,
+    ROUND(AVG(r.averageRating), 2) AS avg_rating,
+    ROUND(AVG(r.numVotes), 0)      AS avg_votes
+FROM title  t
+JOIN rating r ON r.tconst = t.tconst
+WHERE t.startYear BETWEEN 2000 AND 2023
+GROUP BY t.startYear
+ORDER BY t.startYear ASC;
+
+-- ============================================================
+-- RQ4: Which genres produce the longest movies on average?
+-- (Only genres with at least 30 movies with known runtime)
+-- ============================================================
+SELECT
+    g.name                              AS genre,
+    COUNT(DISTINCT t.tconst)            AS total_movies,
+    ROUND(AVG(t.runtimeMinutes), 1)     AS avg_runtime_minutes,
+    MAX(t.runtimeMinutes)               AS longest_runtime,
+    MIN(t.runtimeMinutes)               AS shortest_runtime
+FROM genre       g
+JOIN title_genre tg ON tg.genre_id = g.genre_id
+JOIN title       t  ON t.tconst    = tg.tconst
+WHERE t.runtimeMinutes IS NOT NULL
+  AND t.runtimeMinutes BETWEEN 40 AND 360   -- Exclude outliers (shorts & marathons)
+GROUP BY g.genre_id, g.name
+HAVING COUNT(DISTINCT t.tconst) >= 30
+ORDER BY avg_runtime_minutes DESC;
+
+-- ============================================================
+-- RQ5: Which directors work across the most genres?
+-- (Most genre-versatile directors — at least 3 films)
+-- ============================================================
+SELECT
+    p.primaryName                         AS director_name,
+    COUNT(DISTINCT g.genre_id)            AS genre_count,
+    COUNT(DISTINCT t.tconst)              AS films_directed,
+    GROUP_CONCAT(DISTINCT g.name
+                 ORDER BY g.name
+                 SEPARATOR ', ')          AS genres_worked_in,
+    ROUND(AVG(r.averageRating), 2)        AS avg_rating
+FROM person         p
+JOIN principal      pr ON pr.nconst   = p.nconst
+                       AND pr.category = 'director'
+JOIN title          t  ON t.tconst    = pr.tconst
+JOIN title_genre    tg ON tg.tconst   = t.tconst
+JOIN genre          g  ON g.genre_id  = tg.genre_id
+LEFT JOIN rating    r  ON r.tconst    = t.tconst
+GROUP BY p.nconst, p.primaryName
+HAVING COUNT(DISTINCT t.tconst) >= 3
+ORDER BY genre_count DESC, films_directed DESC
+LIMIT 20;

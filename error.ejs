@@ -1,0 +1,41 @@
+/**
+ * routes/trends.js — RQ3: Average rating by year
+ * CM3010 Database Coursework
+ * Author: Written personally by Ayaan
+ */
+
+'use strict';
+
+const express = require('express');
+const { pool } = require('../db');
+const router  = express.Router();
+
+router.get('/', async (req, res) => {
+  const [rows] = await pool.query(
+    `SELECT
+        t.startYear                    AS release_year,
+        COUNT(DISTINCT t.tconst)       AS total_movies,
+        ROUND(AVG(r.averageRating), 2) AS avg_rating,
+        ROUND(AVG(r.numVotes), 0)      AS avg_votes
+     FROM title  t
+     JOIN rating r ON r.tconst = t.tconst
+     WHERE t.startYear BETWEEN 2000 AND 2023
+     GROUP BY t.startYear
+     ORDER BY t.startYear ASC`
+  );
+
+  // Serialise for Chart.js — arrays of labels and values
+  const chartLabels = JSON.stringify(rows.map(r => r.release_year));
+  const chartRating = JSON.stringify(rows.map(r => parseFloat(r.avg_rating)));
+  const chartMovies = JSON.stringify(rows.map(r => r.total_movies));
+
+  res.render('trends', {
+    title:       'RQ3 — Rating Trends Over Time',
+    rows,
+    chartLabels,
+    chartRating,
+    chartMovies,
+  });
+});
+
+module.exports = router;

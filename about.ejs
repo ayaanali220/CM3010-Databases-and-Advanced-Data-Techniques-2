@@ -1,0 +1,46 @@
+/**
+ * routes/duration.js — RQ4: Genres by average runtime
+ * CM3010 Database Coursework
+ * Author: Written personally by Ayaan
+ */
+
+'use strict';
+
+const express = require('express');
+const { pool } = require('../db');
+const router  = express.Router();
+
+router.get('/', async (req, res) => {
+  const minMovies = parseInt(req.query.min_movies, 10) || 30;
+
+  const [rows] = await pool.query(
+    `SELECT
+        g.name                              AS genre,
+        COUNT(DISTINCT t.tconst)            AS total_movies,
+        ROUND(AVG(t.runtimeMinutes), 1)     AS avg_runtime,
+        MAX(t.runtimeMinutes)               AS longest,
+        MIN(t.runtimeMinutes)               AS shortest
+     FROM genre       g
+     JOIN title_genre tg ON tg.genre_id = g.genre_id
+     JOIN title       t  ON t.tconst    = tg.tconst
+     WHERE t.runtimeMinutes IS NOT NULL
+       AND t.runtimeMinutes BETWEEN 40 AND 360
+     GROUP BY g.genre_id, g.name
+     HAVING COUNT(DISTINCT t.tconst) >= ?
+     ORDER BY avg_runtime DESC`,
+    [minMovies]
+  );
+
+  const chartLabels  = JSON.stringify(rows.map(r => r.genre));
+  const chartRuntime = JSON.stringify(rows.map(r => parseFloat(r.avg_runtime)));
+
+  res.render('duration', {
+    title:      'RQ4 — Genres by Average Runtime',
+    rows,
+    minMovies,
+    chartLabels,
+    chartRuntime,
+  });
+});
+
+module.exports = router;

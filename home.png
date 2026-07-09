@@ -1,0 +1,20 @@
+{
+  "name": "database_project_for_ayaan",
+  "version": "1.0.0",
+  "description": "CM3010 Database Coursework — IMDb Explorer Web App",
+  "main": "app/server.js",
+  "scripts": {
+    "start": "node app/server.js",
+    "dev": "node --watch app/server.js",
+    "import": "node database/seed/import.js"
+  },
+  "keywords": ["imdb", "database", "coursework", "cm3010"],
+  "author": "Ayaan",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "ejs": "^6.0.1",
+    "express": "^5.2.1",
+    "mysql2": "^3.22.5"
+  }
+}

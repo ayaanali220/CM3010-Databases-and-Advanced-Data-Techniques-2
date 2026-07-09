@@ -1,0 +1,69 @@
+# IMDb Explorer — CM3010 Database Coursework
+
+A Node.js/Express web application that queries a local MySQL database of IMDb movie data (2000–2023), answering 5 research questions through interactive data tables and Chart.js visualisations.
+
+---
+
+## Quick Start
+
+### 1. Set up MySQL database
+```bash
+mysql -u root -p < database/schema.sql
+```
+
+### 2. Configure credentials
+Edit `.env`:
+```
+DB_HOST=localhost
+DB_PORT=3306
+DB_USER=root
+DB_PASSWORD=your_mysql_password
+DB_NAME=imdb_coursework
+PORT=3000
+```
+
+### 3. Import IMDb data (streams directly from imdbws.com — no download needed)
+```bash
+npm run import
+```
+This takes ~10–20 minutes depending on internet speed. ~80,000 movies will be imported.
+
+### 4. Run the web app
+```bash
+npm run dev
+```
+Visit: http://localhost:3000
+
+---
+
+## Project Structure
+```
+database_project_for_ayaan/
+├── app/
+│   ├── server.js              # Express entry point
+│   ├── db.js                  # MySQL connection pool
+│   ├── routes/                # Route handlers (one per research question)
+│   ├── views/                 # EJS templates
+│   └── public/                # Static CSS and JS
+├── database/
+│   ├── schema.sql             # CREATE TABLE statements
+│   ├── queries.sql            # 5 research question SQL queries
+│   └── seed/import.js         # IMDb data importer
+├── report/
+│   └── screenshots/           # App screenshots for the report
+├── .env                       # DB credentials (not committed)
+└── package.json
+```
+
+## Research Questions
+| # | Question |
+|---|---|
+| RQ1 | Which genres have the highest average IMDb rating? |
+| RQ2 | Who are the top 10 directors by average rating (min 5 films)? |
+| RQ3 | How has average movie rating changed by year (2000–2023)? |
+| RQ4 | Which genres produce the longest movies on average? |
+| RQ5 | Which directors work across the most genres? |
+
+## Data Source
+IMDb Non-Commercial Datasets — https://datasets.imdbws.com/  
+License: Non-commercial use (CC BY-NC 4.0)

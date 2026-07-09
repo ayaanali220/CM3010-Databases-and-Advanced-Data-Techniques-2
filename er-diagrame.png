@@ -1,0 +1,291 @@
+/**
+ * database/seed/import.js — IMDb Data Import Script
+ * CM3010 Database Coursework
+ * Author: Written personally by Ayaan
+ *
+ * Downloads and imports IMDb TSV files into MySQL.
+ * Filters to movies only, years 2000-2023.
+ * Handles IMDb's '\N' null value convention.
+ *
+ * Usage: node database/seed/import.js
+ * Prerequisites: Run database/schema.sql first in MySQL.
+ *
+ * External libraries used:
+ *   - https (Node built-in) — for downloading files
+ *   - zlib  (Node built-in) — for gunzip decompression
+ *   - readline (Node built-in) — for line-by-line TSV reading
+ *   - mysql2/promise — for database inserts
+ *   - dotenv — for .env credentials
+ */
+
+'use strict';
+
+const https    = require('https');
+const zlib     = require('zlib');
+const readline = require('readline');
+const mysql    = require('mysql2/promise');
+const path     = require('path');
+require('dotenv').config({ path: path.join(__dirname, '../../.env') });
+
+// ── Configuration ─────────────────────────────────────────────
+const YEAR_MIN = 2000;
+const YEAR_MAX = 2023;
+const BATCH_SIZE = 500;         // Rows per INSERT batch for performance
+const TITLE_TYPE = 'movie';     // Only import movies (not TV, shorts, etc.)
+
+// IMDb file URLs
+const IMDB_BASE = 'https://datasets.imdbws.com/';
+const FILES = {
+  titleBasics:    'title.basics.tsv.gz',
+  titleRatings:   'title.ratings.tsv.gz',
+  titlePrincipals:'title.principals.tsv.gz',
+  nameBasics:     'name.basics.tsv.gz',
+};
+
+// ── Helpers ────────────────────────────────────────────────────
+
+/**
+ * Parse an IMDb field — returns null for '\N' values.
+ * Author: Written personally by Ayaan
+ */
+function parseField(val) {
+  return (val === '\\N' || val === '' || val == null) ? null : val;
+}
+
+/**
+ * Stream a gzipped TSV from a URL and yield parsed rows.
+ * Author: Written personally by Ayaan
+ * Uses Node's https + zlib + readline (all built-in).
+ */
+function streamTSV(url, onRow) {
+  return new Promise((resolve, reject) => {
+    console.log(`  ↓ Streaming: ${url}`);
+    https.get(url, (res) => {
+      if (res.statusCode !== 200) {
+        reject(new Error(`HTTP ${res.statusCode} for ${url}`));
+        return;
+      }
+
+      const gunzip = zlib.createGunzip();
+      const rl     = readline.createInterface({ input: res.pipe(gunzip), crlfDelay: Infinity });
+
+      let headerSkipped = false;
+      let lineCount     = 0;
+
+      rl.on('line', (line) => {
+        if (!headerSkipped) { headerSkipped = true; return; }  // Skip TSV header row
+        const cols = line.split('\t');
+        onRow(cols);
+        lineCount++;
+      });
+
+      rl.on('close', () => {
+        console.log(`     ✓ Processed ${lineCount.toLocaleString()} rows`);
+        resolve();
+      });
+      rl.on('error', reject);
+      gunzip.on('error', reject);
+    }).on('error', reject);
+  });
+}
+
+/**
+ * Insert rows in batches for efficiency.
+ * Author: Written personally by Ayaan
+ */
+async function batchInsert(conn, sql, rows) {
+  if (rows.length === 0) return 0;
+  let inserted = 0;
+  for (let i = 0; i < rows.length; i += BATCH_SIZE) {
+    const batch = rows.slice(i, i + BATCH_SIZE);
+    await conn.query(sql, [batch]);
+    inserted += batch.length;
+  }
+  return inserted;
+}
+
+// ── Main import routine ────────────────────────────────────────
+async function run() {
+  console.log('\n🎬 IMDb Data Import — CM3010 Database Coursework');
+  console.log('================================================\n');
+
+  const pool = mysql.createPool({
+    host:     process.env.DB_HOST     || 'localhost',
+    port:     parseInt(process.env.DB_PORT, 10) || 3306,
+    user:     process.env.DB_USER     || 'root',
+    password: process.env.DB_PASSWORD || '',
+    database: process.env.DB_NAME     || 'imdb_coursework',
+    multipleStatements: false,
+    connectTimeout: 30000,
+  });
+
+  // Test connection
+  const conn = await pool.getConnection();
+  console.log('✅ Database connected\n');
+
+  try {
+    // ────────────────────────────────────────────────────────
+    // Step 1: Import titles + genres
+    // ────────────────────────────────────────────────────────
+    console.log('📌 Step 1/4 — Importing titles and genres...');
+
+    const titleRows   = [];  // [tconst, primaryTitle, originalTitle, startYear, runtime, isAdult]
+    const genreSet    = new Set();    // Collect unique genre names
+    const tgenreRows  = [];           // [tconst, genreName] (genre_id resolved later)
+    const movieSet    = new Set();    // tconst values of accepted movies
+
+    await streamTSV(IMDB_BASE + FILES.titleBasics, (cols) => {
+      const [tconst, titleType, primaryTitle, originalTitle,
+             isAdult, startYear, , runtimeMinutes, genres] = cols;
+
+      if (titleType !== TITLE_TYPE) return;
+
+      const year = parseInt(parseField(startYear), 10);
+      if (isNaN(year) || year < YEAR_MIN || year > YEAR_MAX) return;
+
+      movieSet.add(tconst);
+      titleRows.push([
+        tconst,
+        parseField(primaryTitle)  || '',
+        parseField(originalTitle) || '',
+        year,
+        parseField(runtimeMinutes) ? parseInt(runtimeMinutes, 10) : null,
+        parseField(isAdult) === '1' ? 1 : 0,
+      ]);
+
+      if (genres && genres !== '\\N') {
+        genres.split(',').forEach(g => {
+          const gTrimmed = g.trim();
+          if (gTrimmed) {
+            genreSet.add(gTrimmed);
+            tgenreRows.push([tconst, gTrimmed]);
+          }
+        });
+      }
+    });
+
+    // Insert titles
+    console.log(`   Inserting ${titleRows.length.toLocaleString()} titles...`);
+    await batchInsert(conn,
+      'INSERT IGNORE INTO title (tconst, primaryTitle, originalTitle, startYear, runtimeMinutes, isAdult) VALUES ?',
+      titleRows
+    );
+
+    // Insert genres
+    console.log(`   Inserting ${genreSet.size} unique genres...`);
+    const genreInsertRows = Array.from(genreSet).map(name => [name]);
+    await batchInsert(conn, 'INSERT IGNORE INTO genre (name) VALUES ?', genreInsertRows);
+
+    // Build genre name → id map
+    const [genreDbRows] = await conn.query('SELECT genre_id, name FROM genre');
+    const genreMap = new Map(genreDbRows.map(r => [r.name, r.genre_id]));
+
+    // Insert title_genre (resolve genre name to id)
+    const tgenreResolved = tgenreRows
+      .filter(([tconst, name]) => movieSet.has(tconst) && genreMap.has(name))
+      .map(([tconst, name]) => [tconst, genreMap.get(name)]);
+
+    console.log(`   Inserting ${tgenreResolved.length.toLocaleString()} title-genre links...`);
+    await batchInsert(conn, 'INSERT IGNORE INTO title_genre (tconst, genre_id) VALUES ?', tgenreResolved);
+
+    // ────────────────────────────────────────────────────────
+    // Step 2: Import ratings
+    // ────────────────────────────────────────────────────────
+    console.log('\n📌 Step 2/4 — Importing ratings...');
+    const ratingRows = [];
+
+    await streamTSV(IMDB_BASE + FILES.titleRatings, (cols) => {
+      const [tconst, averageRating, numVotes] = cols;
+      if (!movieSet.has(tconst)) return;    // Only movies we imported
+      const rating = parseFloat(parseField(averageRating));
+      const votes  = parseInt(parseField(numVotes), 10);
+      if (isNaN(rating) || isNaN(votes)) return;
+      ratingRows.push([tconst, rating, votes]);
+    });
+
+    console.log(`   Inserting ${ratingRows.length.toLocaleString()} ratings...`);
+    await batchInsert(conn, 'INSERT IGNORE INTO rating (tconst, averageRating, numVotes) VALUES ?', ratingRows);
+
+    // ────────────────────────────────────────────────────────
+    // Step 3: Import principals (directors + top actors)
+    // ────────────────────────────────────────────────────────
+    console.log('\n📌 Step 3/4 — Importing principals (directors & actors)...');
+
+    // Categories we care about — limiting scope keeps import fast
+    const WANTED_CATEGORIES = new Set(['director', 'actor', 'actress', 'writer']);
+    const principalRows  = [];
+    const neededPersons  = new Set();
+
+    await streamTSV(IMDB_BASE + FILES.titlePrincipals, (cols) => {
+      const [tconst, ordering, nconst, category, job] = cols;
+      if (!movieSet.has(tconst)) return;
+      if (!WANTED_CATEGORIES.has(parseField(category))) return;
+
+      neededPersons.add(nconst);
+      principalRows.push([
+        tconst,
+        nconst,
+        parseInt(parseField(ordering), 10) || 1,
+        parseField(category),
+        parseField(job),
+      ]);
+    });
+
+    // ────────────────────────────────────────────────────────
+    // Step 4: Import persons (only those referenced in principals)
+    // ────────────────────────────────────────────────────────
+    console.log('\n📌 Step 4/4 — Importing persons...');
+    const personRows = [];
+
+    await streamTSV(IMDB_BASE + FILES.nameBasics, (cols) => {
+      const [nconst, primaryName, birthYear, , primaryProfession] = cols;
+      if (!neededPersons.has(nconst)) return;
+
+      const bYear = parseField(birthYear) ? parseInt(birthYear, 10) : null;
+      personRows.push([
+        nconst,
+        parseField(primaryName) || '',
+        isNaN(bYear) ? null : bYear,
+        parseField(primaryProfession),
+      ]);
+    });
+
+    console.log(`   Inserting ${personRows.length.toLocaleString()} persons...`);
+    await batchInsert(conn, 'INSERT IGNORE INTO person (nconst, primaryName, birthYear, primaryProfession) VALUES ?', personRows);
+
+    // Build set of imported persons for FK safety
+    const importedPersons = new Set(personRows.map(r => r[0]));
+
+    // Insert principals (only if both title and person exist)
+    const safePrincipals = principalRows.filter(
+      ([tconst, nconst]) => movieSet.has(tconst) && importedPersons.has(nconst)
+    );
+
+    console.log(`   Inserting ${safePrincipals.length.toLocaleString()} principals...`);
+    await batchInsert(conn, 'INSERT IGNORE INTO principal (tconst, nconst, ordering, category, job) VALUES ?', safePrincipals);
+
+    // ── Summary ───────────────────────────────────────────
+    console.log('\n════════════════════════════════════════════');
+    console.log('✅ Import complete! Summary:');
+    const [[{cnt: tc}]] = await conn.query('SELECT COUNT(*) AS cnt FROM title');
+    const [[{cnt: gc}]] = await conn.query('SELECT COUNT(*) AS cnt FROM genre');
+    const [[{cnt: rc}]] = await conn.query('SELECT COUNT(*) AS cnt FROM rating');
+    const [[{cnt: pc}]] = await conn.query('SELECT COUNT(*) AS cnt FROM person');
+    const [[{cnt: pr}]] = await conn.query('SELECT COUNT(*) AS cnt FROM principal');
+    console.log(`   Titles:     ${tc.toLocaleString()}`);
+    console.log(`   Genres:     ${gc.toLocaleString()}`);
+    console.log(`   Ratings:    ${rc.toLocaleString()}`);
+    console.log(`   Persons:    ${pc.toLocaleString()}`);
+    console.log(`   Principals: ${pr.toLocaleString()}`);
+    console.log('════════════════════════════════════════════\n');
+
+  } finally {
+    conn.release();
+    await pool.end();
+  }
+}
+
+run().catch(err => {
+  console.error('\n❌ Import failed:', err.message);
+  process.exit(1);
+});
